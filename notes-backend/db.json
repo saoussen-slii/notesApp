@@ -1,0 +1,19 @@
+{
+  "notes": [
+    {
+      "id": 1,
+      "content": "HTML is easy",
+      "important": true
+    },
+    {
+      "id": 2,
+      "content": "Browser can execute only JavaScript",
+      "important": true
+    },
+    {
+      "id": 1791214211999,
+      "content": "React est un framework tres puissant",
+      "important": false
+    }
+  ]
+}
