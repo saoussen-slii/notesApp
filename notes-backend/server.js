@@ -20,10 +20,12 @@ async function writeNotes(notes) {
 }
 
 app.get("/notes", async (req, res) => {
+  console.log("Requête GET /notes reçue");
   const notesPromise = readNotes();
   console.log("Promise avant await :", notesPromise);
 
   const notes = await notesPromise;
+  console.log("Notes après await :", notes);
   res.json(notes);
 });
 
