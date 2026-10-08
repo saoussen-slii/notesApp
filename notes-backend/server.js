@@ -10,30 +10,32 @@ app.use(express.json());
 
 const dbPath = "./db.json";
 
-function readNotes() {
-  const data = fs.readFileSync(dbPath, "utf-8");
+async function readNotes() {
+  const data = await fs.promises.readFile(dbPath, "utf-8");
   return JSON.parse(data).notes;
 }
 
-function writeNotes(notes) {
-  fs.writeFileSync(dbPath, JSON.stringify({ notes }, null, 2));
+async function writeNotes(notes) {
+  await fs.promises.writeFile(dbPath, JSON.stringify({ notes }, null, 2));
 }
 
-app.get("/notes", (req, res) => {
-  res.json(readNotes());
+app.get("/notes", async (req, res) => {
+  const notesPromise = readNotes();
+  console.log("Promise avant await :", notesPromise);
+
+  const notes = await notesPromise;
+  res.json(notes);
 });
 
-app.post("/notes", (req, res) => {
+app.post("/notes", async (req, res) => {
   const { content, important = false } = req.body ?? {};
   if (typeof content !== "string" || typeof important !== "boolean") {
-    return res
-      .status(400)
-      .json({
-        error: "content must be a string and important must be a boolean",
-      });
+    return res.status(400).json({
+      error: "content must be a string and important must be a boolean",
+    });
   }
 
-  const notes = readNotes();
+  const notes = await readNotes();
   const newNote = {
     id: Date.now(),
     content,
@@ -41,21 +43,19 @@ app.post("/notes", (req, res) => {
   };
 
   notes.push(newNote);
-  writeNotes(notes);
+  await writeNotes(notes);
   res.status(201).json(newNote);
 });
 
-app.put("/notes/:id", (req, res) => {
+app.put("/notes/:id", async (req, res) => {
   const { content, important } = req.body ?? {};
   if (typeof content !== "string" || typeof important !== "boolean") {
-    return res
-      .status(400)
-      .json({
-        error: "content must be a string and important must be a boolean",
-      });
+    return res.status(400).json({
+      error: "content must be a string and important must be a boolean",
+    });
   }
 
-  const notes = readNotes();
+  const notes = await readNotes();
   const index = notes.findIndex((note) => String(note.id) === req.params.id);
   if (index === -1) {
     return res.status(404).json({ error: "Note not found" });
@@ -63,19 +63,19 @@ app.put("/notes/:id", (req, res) => {
 
   const updatedNote = { ...notes[index], content, important };
   notes[index] = updatedNote;
-  writeNotes(notes);
+  await writeNotes(notes);
   res.json(updatedNote);
 });
 
-app.delete("/notes/:id", (req, res) => {
-  const notes = readNotes();
+app.delete("/notes/:id", async (req, res) => {
+  const notes = await readNotes();
   const index = notes.findIndex((note) => String(note.id) === req.params.id);
   if (index === -1) {
     return res.status(404).json({ error: "Note not found" });
   }
 
   notes.splice(index, 1);
-  writeNotes(notes);
+  await writeNotes(notes);
   res.status(204).end();
 });
 
