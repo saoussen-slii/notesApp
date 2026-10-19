@@ -1,29 +1,34 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import "./App.css";
 import Note from "./components/Note";
 import notesService, { type NoteData } from "./services/notesService";
+import {
+  fetchNotes,
+  noteAdded,
+  noteRemoved,
+  noteUpdated,
+} from "./store/notesSlice";
+import type { AppDispatch, RootState } from "./store/store";
 
 function App() {
-  const [notes, setNotes] = useState<NoteData[]>([]);
+  const dispatch = useDispatch<AppDispatch>();
+  const notes = useSelector((state: RootState) => state.notes.items);
+  const loading = useSelector(
+    (state: RootState) => state.notes.status === "loading",
+  );
   const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(true);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    notesService
-      .getAll()
-      .then((data) => {
-        setTimeout(() => {
-          setLoading(false);
-          setNotes(data);
-        }, 1000);
-      })
+    dispatch(fetchNotes())
+      .unwrap()
+      .then(() => setError(""))
       .catch(() => setError("Impossible de charger les notes."));
-  }, []);
+  }, [dispatch]);
 
-  const addNote = async (event: FormEvent<HTMLFormElement>) => {
+  const addNote = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const content = newNote.trim();
     if (!content) return;
@@ -33,7 +38,7 @@ function App() {
         content,
         important: false,
       });
-      setNotes((currentNotes) => currentNotes.concat(createdNote));
+      dispatch(noteAdded(createdNote));
       setNewNote("");
       setError("");
     } catch {
@@ -47,11 +52,7 @@ function App() {
         ...note,
         important: !note.important,
       });
-      setNotes((currentNotes) =>
-        currentNotes.map((currentNote) =>
-          currentNote.id === updatedNote.id ? updatedNote : currentNote,
-        ),
-      );
+      dispatch(noteUpdated(updatedNote));
       setError("");
     } catch {
       setError("Impossible de modifier l’importance de la note.");
@@ -61,7 +62,7 @@ function App() {
   const deleteNote = async (id: NoteData["id"]) => {
     try {
       await notesService.remove(id);
-      setNotes((currentNotes) => currentNotes.filter((note) => note.id !== id));
+      dispatch(noteRemoved(id));
       setError("");
     } catch {
       setError("Impossible de supprimer la note.");
@@ -75,7 +76,9 @@ function App() {
       <header className="notes-header">
         <p className="eyebrow">Votre espace personnel</p>
         <h1>Notes</h1>
-        <p className="notes-subtitle">Toutes vos idées importantes, au même endroit.</p>
+        <p className="notes-subtitle">
+          Toutes vos idées importantes, au même endroit.
+        </p>
       </header>
 
       <form className="note-form" onSubmit={addNote}>
@@ -86,10 +89,16 @@ function App() {
           onChange={(event) => setNewNote(event.target.value)}
           placeholder="Écrivez votre idée ici..."
         />
-        <button className="button-primary" type="submit">Enregistrer</button>
+        <button className="button-primary" type="submit">
+          Enregistrer
+        </button>
       </form>
 
-      {error && <p className="error-message" role="alert">{error}</p>}
+      {error && (
+        <p className="error-message" role="alert">
+          {error}
+        </p>
+      )}
       {loading && <p className="loading-state">Chargement de vos notes...</p>}
 
       <section aria-labelledby="notes-list-heading">
