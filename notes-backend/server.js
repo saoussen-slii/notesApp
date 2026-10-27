@@ -9,10 +9,16 @@ app.use(cors());
 app.use(express.json());
 
 const dbPath = "./db.json";
+const noteCategories = ["travail", "ecole", "personnel", "urgent"];
 
 async function readNotes() {
   const data = await fs.promises.readFile(dbPath, "utf-8");
-  return JSON.parse(data).notes;
+  return JSON.parse(data).notes.map((note) => ({
+    ...note,
+    category: noteCategories.includes(note.category)
+      ? note.category
+      : "personnel",
+  }));
 }
 
 async function writeNotes(notes) {
@@ -30,10 +36,14 @@ app.get("/notes", async (req, res) => {
 });
 
 app.post("/notes", async (req, res) => {
-  const { content, important = false } = req.body ?? {};
-  if (typeof content !== "string" || typeof important !== "boolean") {
+  const { content, important = false, category } = req.body ?? {};
+  if (
+    typeof content !== "string" ||
+    typeof important !== "boolean" ||
+    !noteCategories.includes(category)
+  ) {
     return res.status(400).json({
-      error: "content must be a string and important must be a boolean",
+      error: "content, important, or category is invalid",
     });
   }
 
@@ -42,6 +52,7 @@ app.post("/notes", async (req, res) => {
     id: Date.now(),
     content,
     important,
+    category,
   };
 
   notes.push(newNote);
@@ -50,10 +61,14 @@ app.post("/notes", async (req, res) => {
 });
 
 app.put("/notes/:id", async (req, res) => {
-  const { content, important } = req.body ?? {};
-  if (typeof content !== "string" || typeof important !== "boolean") {
+  const { content, important, category } = req.body ?? {};
+  if (
+    typeof content !== "string" ||
+    typeof important !== "boolean" ||
+    !noteCategories.includes(category)
+  ) {
     return res.status(400).json({
-      error: "content must be a string and important must be a boolean",
+      error: "content, important, or category is invalid",
     });
   }
 
@@ -63,7 +78,7 @@ app.put("/notes/:id", async (req, res) => {
     return res.status(404).json({ error: "Note not found" });
   }
 
-  const updatedNote = { ...notes[index], content, important };
+  const updatedNote = { ...notes[index], content, important, category };
   notes[index] = updatedNote;
   await writeNotes(notes);
   res.json(updatedNote);

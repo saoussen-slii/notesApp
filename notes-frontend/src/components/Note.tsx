@@ -8,10 +8,16 @@ type NoteProps = {
 
 function Note({ note, onToggleImportance, onDelete }: NoteProps) {
   return (
-    <li className="note-card">
+    <li
+      className="note-card"
+      style={{ borderColor: note.important ? "red" : "black" }}
+    >
       <div className="note-content">
         {note.content}
         {note.important && <span className="note-badge">Importante</span>}
+        {note.category && (
+          <span className="note-category">Catégorie: {note.category}</span>
+        )}
       </div>
       <div className="note-actions">
         <button
@@ -26,6 +32,7 @@ function Note({ note, onToggleImportance, onDelete }: NoteProps) {
           type="button"
           onClick={() => onDelete(note.id)}
           aria-label={`Supprimer la note : ${note.content}`}
+          disabled={note.important}
         >
           Supprimer
         </button>

@@ -1,9 +1,12 @@
 import axios from "axios";
 
+export type NoteCategory = "travail" | "ecole" | "personnel" | "urgent";
+
 export type NoteData = {
   id: number | string;
   content: string;
   important: boolean;
+  category: NoteCategory;
 };
 
 const api = axios.create({ baseURL: "http://localhost:3001/notes" });

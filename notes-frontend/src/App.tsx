@@ -2,7 +2,10 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./App.css";
 import Note from "./components/Note";
-import notesService, { type NoteData } from "./services/notesService";
+import notesService, {
+  type NoteCategory,
+  type NoteData,
+} from "./services/notesService";
 import {
   fetchNotes,
   noteAdded,
@@ -18,6 +21,10 @@ function App() {
     (state: RootState) => state.notes.status === "loading",
   );
   const [newNote, setNewNote] = useState("");
+  const [newCategory, setNewCategory] = useState<NoteCategory>("personnel");
+  const [categoryFilter, setCategoryFilter] = useState<NoteCategory | "toutes">(
+    "toutes",
+  );
   const [showAll, setShowAll] = useState(true);
   const [error, setError] = useState("");
 
@@ -37,9 +44,11 @@ function App() {
       const createdNote = await notesService.create({
         content,
         important: false,
+        category: newCategory,
       });
       dispatch(noteAdded(createdNote));
       setNewNote("");
+      setNewCategory("personnel");
       setError("");
     } catch {
       setError("Impossible d’ajouter la note.");
@@ -69,7 +78,11 @@ function App() {
     }
   };
 
-  const visibleNotes = showAll ? notes : notes.filter((note) => note.important);
+  const visibleNotes = notes.filter(
+    (note) =>
+      (showAll || note.important) &&
+      (categoryFilter === "toutes" || note.category === categoryFilter),
+  );
 
   return (
     <main className="notes-app">
@@ -86,12 +99,38 @@ function App() {
         <input
           id="note-content"
           value={newNote}
+          maxLength={100}
           onChange={(event) => setNewNote(event.target.value)}
           placeholder="Écrivez votre idée ici..."
+          aria-describedby="note-character-count"
         />
-        <button className="button-primary" type="submit">
+        <button
+          className="button-primary"
+          type="submit"
+          disabled={!newNote.trim() || loading}
+        >
           Enregistrer
         </button>
+        <label htmlFor="note-category">Catégorie</label>
+        <select
+          id="note-category"
+          value={newCategory}
+          onChange={(event) =>
+            setNewCategory(event.target.value as NoteCategory)
+          }
+        >
+          <option value="travail">Travail</option>
+          <option value="ecole">École</option>
+          <option value="personnel">Personnel</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <p
+          className="note-character-ount"
+          id="note-character-count"
+          aria-live="polite"
+        >
+          {newNote.length}/100
+        </p>
       </form>
 
       {error && (
@@ -115,6 +154,23 @@ function App() {
           >
             {showAll ? "Voir les importantes" : "Voir toutes les notes"}
           </button>
+          <label className="category-filter">
+            <span>Catégorie :</span>
+            <select
+              value={categoryFilter}
+              onChange={(event) =>
+                setCategoryFilter(
+                  event.target.value as NoteCategory | "toutes",
+                )
+              }
+            >
+              <option value="toutes">Toutes</option>
+              <option value="travail">Travail</option>
+              <option value="ecole">École</option>
+              <option value="personnel">Personnel</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
         </div>
         {visibleNotes.length > 0 ? (
           <ul className="notes-list">
@@ -131,8 +187,12 @@ function App() {
           !loading && (
             <p className="empty-state">
               {showAll
-                ? "Aucune note pour le moment. Ajoutez votre première idée ci-dessus."
-                : "Aucune note importante pour le moment."}
+                ? categoryFilter === "toutes"
+                  ? "Aucune note pour le moment. Ajoutez votre première idée ci-dessus."
+                  : "Aucune note dans cette catégorie."
+                : categoryFilter === "toutes"
+                  ? "Aucune note importante pour le moment."
+                  : "Aucune note importante dans cette catégorie."}
             </p>
           )
         )}

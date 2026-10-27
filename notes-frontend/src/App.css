@@ -57,7 +57,8 @@
   font-weight: 650;
 }
 
-.note-form input {
+.note-form input,
+.note-form select {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -70,6 +71,11 @@
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.note-form select {
+  cursor: pointer;
+  grid-column: 1 / -1;
+}
+
 .note-form input::placeholder {
   color: var(--muted);
 }
@@ -78,6 +84,14 @@
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.note-character-count {
+  grid-column: 1 / -1;
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
 }
 
 button {
@@ -113,13 +127,20 @@ button:active {
   transform: translateY(0);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
 .button-primary {
   color: #fff;
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.button-primary:hover {
+.button-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
@@ -150,6 +171,24 @@ button:active {
   color: var(--accent);
   background: var(--accent-bg);
   border-color: transparent;
+}
+
+.category-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.category-filter select {
+  min-height: 42px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  font: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 .notes-list {
@@ -198,6 +237,22 @@ button:active {
   vertical-align: middle;
   background: var(--accent-bg);
   border-radius: 999px;
+}
+
+.note-category {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 8px;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.4;
+  vertical-align: middle;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-transform: capitalize;
 }
 
 .note-actions {

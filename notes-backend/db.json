@@ -3,22 +3,26 @@
     {
       "id": 1,
       "content": "HTML is easy",
-      "important": true
+      "important": true,
+      "category": "personnel"
     },
     {
       "id": 2,
       "content": "Browser can execute only JavaScript",
-      "important": true
-    },
-    {
-      "id": 1791214211999,
-      "content": "React est un framework tres puissant",
-      "important": false
+      "important": true,
+      "category": "personnel"
     },
     {
       "id": 1791376984831,
       "content": "oui",
-      "important": false
+      "important": false,
+      "category": "personnel"
+    },
+    {
+      "id": 1792588746551,
+      "content": "React est un framework tres puissant",
+      "important": false,
+      "category": "travail"
     }
   ]
 }
