@@ -21,6 +21,7 @@ function App() {
     (state: RootState) => state.notes.status === "loading",
   );
   const [newNote, setNewNote] = useState("");
+  const [newCompleted, setNewCompleted] = useState(false);
   const [newCategory, setNewCategory] = useState<NoteCategory>("personnel");
   const [categoryFilter, setCategoryFilter] = useState<NoteCategory | "toutes">(
     "toutes",
@@ -44,10 +45,12 @@ function App() {
       const createdNote = await notesService.create({
         content,
         important: false,
+        completed: newCompleted,
         category: newCategory,
       });
       dispatch(noteAdded(createdNote));
       setNewNote("");
+      setNewCompleted(false);
       setNewCategory("personnel");
       setError("");
     } catch {
@@ -65,6 +68,19 @@ function App() {
       setError("");
     } catch {
       setError("Impossible de modifier l’importance de la note.");
+    }
+  };
+
+  const toggleCompleted = async (note: NoteData) => {
+    try {
+      const updatedNote = await notesService.update(note.id, {
+        ...note,
+        completed: !note.completed,
+      });
+      dispatch(noteUpdated(updatedNote));
+      setError("");
+    } catch {
+      setError("Impossible de modifier l’état de la note.");
     }
   };
 
@@ -124,6 +140,15 @@ function App() {
           <option value="personnel">Personnel</option>
           <option value="urgent">Urgent</option>
         </select>
+        <label className="check-field" htmlFor="note-completed">
+          <input
+            id="note-completed"
+            type="checkbox"
+            checked={newCompleted}
+            onChange={(event) => setNewCompleted(event.target.checked)}
+          />
+          Terminée
+        </label>
         <p
           className="note-character-ount"
           id="note-character-count"
@@ -179,6 +204,7 @@ function App() {
                 key={note.id}
                 note={note}
                 onToggleImportance={toggleImportance}
+                onToggleCompleted={toggleCompleted}
                 onDelete={deleteNote}
               />
             ))}

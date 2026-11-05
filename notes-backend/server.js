@@ -15,6 +15,7 @@ async function readNotes() {
   const data = await fs.promises.readFile(dbPath, "utf-8");
   return JSON.parse(data).notes.map((note) => ({
     ...note,
+    completed: note.completed === true,
     category: noteCategories.includes(note.category)
       ? note.category
       : "personnel",
@@ -36,14 +37,20 @@ app.get("/notes", async (req, res) => {
 });
 
 app.post("/notes", async (req, res) => {
-  const { content, important = false, category } = req.body ?? {};
+  const {
+    content,
+    important = false,
+    completed = false,
+    category,
+  } = req.body ?? {};
   if (
     typeof content !== "string" ||
     typeof important !== "boolean" ||
+    typeof completed !== "boolean" ||
     !noteCategories.includes(category)
   ) {
     return res.status(400).json({
-      error: "content, important, or category is invalid",
+      error: "content, important, completed, or category is invalid",
     });
   }
 
@@ -52,6 +59,7 @@ app.post("/notes", async (req, res) => {
     id: Date.now(),
     content,
     important,
+    completed,
     category,
   };
 
@@ -61,14 +69,15 @@ app.post("/notes", async (req, res) => {
 });
 
 app.put("/notes/:id", async (req, res) => {
-  const { content, important, category } = req.body ?? {};
+  const { content, important, completed, category } = req.body ?? {};
   if (
     typeof content !== "string" ||
     typeof important !== "boolean" ||
+    typeof completed !== "boolean" ||
     !noteCategories.includes(category)
   ) {
     return res.status(400).json({
-      error: "content, important, or category is invalid",
+      error: "content, important, completed, or category is invalid",
     });
   }
 
@@ -78,7 +87,13 @@ app.put("/notes/:id", async (req, res) => {
     return res.status(404).json({ error: "Note not found" });
   }
 
-  const updatedNote = { ...notes[index], content, important, category };
+  const updatedNote = {
+    ...notes[index],
+    content,
+    important,
+    completed,
+    category,
+  };
   notes[index] = updatedNote;
   await writeNotes(notes);
   res.json(updatedNote);

@@ -57,7 +57,7 @@
   font-weight: 650;
 }
 
-.note-form input,
+.note-form input:not([type="checkbox"]),
 .note-form select {
   width: 100%;
   min-width: 0;
@@ -76,14 +76,31 @@
   grid-column: 1 / -1;
 }
 
-.note-form input::placeholder {
-  color: var(--muted);
+.note-form .check-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+  cursor: pointer;
 }
 
-.note-form input:focus {
+.check-field input,
+.completed-toggle input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.note-form input:not([type="checkbox"]):focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.note-form input::placeholder {
+  color: var(--muted);
 }
 
 .note-character-count {
@@ -225,6 +242,11 @@ button:disabled {
   white-space: pre-wrap;
 }
 
+.note-text.is-completed {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
 .note-badge {
   display: inline-flex;
   align-items: center;
@@ -259,8 +281,20 @@ button:disabled {
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.completed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: var(--text-h);
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 .button-delete {

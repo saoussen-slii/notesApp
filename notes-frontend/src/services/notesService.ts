@@ -6,6 +6,7 @@ export type NoteData = {
   id: number | string;
   content: string;
   important: boolean;
+  completed: boolean;
   category: NoteCategory;
 };
 
