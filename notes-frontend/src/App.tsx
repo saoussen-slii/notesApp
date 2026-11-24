@@ -4,6 +4,7 @@ import Note from "./components/Note";
 import { categoryLabels, type NoteCategory } from "./services/notesService";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useNotes } from "./hooks/useNotes";
+import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 type Theme = "light" | "dark";
 
@@ -37,6 +38,7 @@ function App() {
     "light",
     isTheme,
   );
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -64,6 +66,13 @@ function App() {
         </p>
       </header>
 
+      {!isOnline && (
+        <p className="offline-message" role="status">
+          Vous êtes hors ligne. Les modifications ne peuvent pas être
+          enregistrées auprès du serveur.
+        </p>
+      )}
+
       <form className="note-form" onSubmit={addNote}>
         <label htmlFor="note-content">Ajouter une note</label>
         <input
@@ -89,13 +98,13 @@ function App() {
             setNewCategory(event.target.value as NoteCategory)
           }
         >
-          {(
-            Object.entries(categoryLabels) as [NoteCategory, string][]
-          ).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
+          {(Object.entries(categoryLabels) as [NoteCategory, string][]).map(
+            ([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ),
+          )}
         </select>
         <label className="check-field" htmlFor="note-completed">
           <input
@@ -143,13 +152,13 @@ function App() {
               onChange={(event) => setCategoryFilter(event.target.value)}
             >
               <option value="toutes">Toutes</option>
-              {(
-                Object.entries(categoryLabels) as [NoteCategory, string][]
-              ).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              {(Object.entries(categoryLabels) as [NoteCategory, string][]).map(
+                ([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ),
+              )}
             </select>
           </label>
         </div>
@@ -180,12 +189,12 @@ function App() {
               {search.trim()
                 ? "Aucune note ne correspond à votre recherche."
                 : showAll
-                ? categoryFilter === "toutes"
-                  ? "Aucune note pour le moment. Ajoutez votre première idée ci-dessus."
-                  : "Aucune note dans cette catégorie."
-                : categoryFilter === "toutes"
-                  ? "Aucune note importante pour le moment."
-                  : "Aucune note importante dans cette catégorie."}
+                  ? categoryFilter === "toutes"
+                    ? "Aucune note pour le moment. Ajoutez votre première idée ci-dessus."
+                    : "Aucune note dans cette catégorie."
+                  : categoryFilter === "toutes"
+                    ? "Aucune note importante pour le moment."
+                    : "Aucune note importante dans cette catégorie."}
             </p>
           )
         )}

@@ -348,7 +348,8 @@ button:disabled {
 
 .empty-state,
 .loading-state,
-.error-message {
+.error-message,
+.offline-message {
   margin: 16px 0 0;
   padding: 18px 20px;
   border-radius: 12px;
@@ -366,6 +367,12 @@ button:disabled {
   color: var(--danger);
   background: var(--danger-bg);
   border: 1px solid var(--danger-border);
+}
+
+.offline-message {
+  color: var(--text-h);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
 }
 
 @media (max-width: 600px) {
