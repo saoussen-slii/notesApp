@@ -13,6 +13,13 @@
   margin-bottom: 34px;
 }
 
+.notes-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   color: var(--accent);
@@ -20,6 +27,11 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.button-theme {
+  color: var(--text-h);
+  background: var(--surface);
 }
 
 .notes-header h1 {
@@ -208,6 +220,33 @@ button:disabled {
   border-radius: 10px;
 }
 
+.search-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.search-field input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 10px 12px;
+  color: var(--text-h);
+  font: inherit;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.search-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
 .notes-list {
   display: grid;
   gap: 12px;
@@ -337,6 +376,10 @@ button:disabled {
 
   .notes-header {
     margin-bottom: 26px;
+  }
+
+  .notes-header-top {
+    align-items: center;
   }
 
   .note-form {

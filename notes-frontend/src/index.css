@@ -29,12 +29,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root[data-theme="dark"] {
+  --text: #c3bdcf;
+  --text-h: #f0edf5;
+  --muted: #a29bad;
+  --bg: #17151d;
+  --surface: #211e29;
+  --input-bg: #1c1923;
+  --border: #393443;
+  --accent: #b19aef;
+  --accent-hover: #c3b2f3;
+  --accent-bg: #302744;
+  --accent-border: #66518d;
+  --danger: #ff9aa7;
+  --danger-bg: #382127;
+  --danger-border: #70404b;
+  --shadow: 0 12px 32px rgb(0 0 0 / 22%);
+
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 50% -15%, rgb(226 217 249 / 45%), transparent 55%),
+    radial-gradient(
+      ellipse at 50% -15%,
+      rgb(226 217 249 / 45%),
+      transparent 55%
+    ),
+    var(--bg);
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse at 50% -15%, rgb(112 80 200 / 16%), transparent 55%),
     var(--bg);
 }
 

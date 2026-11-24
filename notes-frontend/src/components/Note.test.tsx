@@ -8,7 +8,7 @@ const note: NoteData = {
   content: 'Réviser les notes',
   important: false,
   completed: false,
-  category: 'personnel',
+  category: 'PERSONAL',
 }
 
 describe('Note', () => {
@@ -23,7 +23,7 @@ describe('Note', () => {
     )
 
     expect(screen.getByText('Réviser les notes')).toBeInTheDocument()
-    expect(screen.getByText('Catégorie: personnel')).toBeInTheDocument()
+    expect(screen.getByText('Catégorie: Personnel')).toBeInTheDocument()
   })
 
   it('calls the completion and delete handlers', () => {

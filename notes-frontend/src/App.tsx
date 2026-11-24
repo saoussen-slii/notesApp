@@ -14,6 +14,36 @@ import {
   noteUpdated,
 } from "./store/notesSlice";
 import type { AppDispatch, RootState } from "./store/store";
+import { useLocalStorage } from "./hooks/useLocalStorage";
+
+type Theme = "light" | "dark";
+type NotesFilter = {
+  showAll: boolean;
+  categoryFilter: NoteCategory | "toutes";
+};
+
+const isTheme = (value: unknown): value is Theme =>
+  value === "light" || value === "dark";
+
+const isCategoryFilter = (
+  value: unknown,
+): value is NoteCategory | "toutes" =>
+  value === "toutes" ||
+  (typeof value === "string" && Object.hasOwn(categoryLabels, value));
+
+const isNotesFilter = (value: unknown): value is NotesFilter => {
+  if (typeof value !== "object" || value === null) return false;
+
+  return (
+    "showAll" in value &&
+    typeof value.showAll === "boolean" &&
+    "categoryFilter" in value &&
+    isCategoryFilter(value.categoryFilter)
+  );
+};
+
+const isSearch = (value: unknown): value is string =>
+  typeof value === "string";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,14 +51,30 @@ function App() {
   const loading = useSelector(
     (state: RootState) => state.notes.status === "loading",
   );
+  const [theme, setTheme] = useLocalStorage<Theme>(
+    "notes-app:theme",
+    "light",
+    isTheme,
+  );
+  const [filters, setFilters] = useLocalStorage<NotesFilter>(
+    "notes-app:filters",
+    { showAll: true, categoryFilter: "toutes" },
+    isNotesFilter,
+  );
+  const [search, setSearch] = useLocalStorage(
+    "notes-app:last-search",
+    "",
+    isSearch,
+  );
   const [newNote, setNewNote] = useState("");
   const [newCompleted, setNewCompleted] = useState(false);
   const [newCategory, setNewCategory] = useState<NoteCategory>("PERSONAL");
-  const [categoryFilter, setCategoryFilter] = useState<NoteCategory | "toutes">(
-    "toutes",
-  );
-  const [showAll, setShowAll] = useState(true);
+  const { categoryFilter, showAll } = filters;
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   useEffect(() => {
     dispatch(fetchNotes())
@@ -98,13 +144,26 @@ function App() {
   const visibleNotes = notes.filter(
     (note) =>
       (showAll || note.important) &&
-      (categoryFilter === "toutes" || note.category === categoryFilter),
+      (categoryFilter === "toutes" || note.category === categoryFilter) &&
+      note.content.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
   return (
     <main className="notes-app">
       <header className="notes-header">
-        <p className="eyebrow">Votre espace personnel</p>
+        <div className="notes-header-top">
+          <p className="eyebrow">Votre espace personnel</p>
+          <button
+            className="button-theme"
+            type="button"
+            onClick={() =>
+              setTheme((current) => (current === "light" ? "dark" : "light"))
+            }
+            aria-label={`Activer le thème ${theme === "light" ? "sombre" : "clair"}`}
+          >
+            {theme === "light" ? "Mode sombre" : "Mode clair"}
+          </button>
+        </div>
         <h1>Notes</h1>
         <p className="notes-subtitle">
           Toutes vos idées importantes, au même endroit.
@@ -178,7 +237,12 @@ function App() {
           <button
             className="button-filter"
             type="button"
-            onClick={() => setShowAll((current) => !current)}
+            onClick={() =>
+              setFilters((current) => ({
+                ...current,
+                showAll: !current.showAll,
+              }))
+            }
             aria-pressed={!showAll}
           >
             {showAll ? "Voir les importantes" : "Voir toutes les notes"}
@@ -187,11 +251,15 @@ function App() {
             <span>Catégorie :</span>
             <select
               value={categoryFilter}
-              onChange={(event) =>
-                setCategoryFilter(
-                  event.target.value as NoteCategory | "toutes",
-                )
-              }
+              onChange={(event) => {
+                const selectedCategory = event.target.value;
+                if (isCategoryFilter(selectedCategory)) {
+                  setFilters((current) => ({
+                    ...current,
+                    categoryFilter: selectedCategory,
+                  }));
+                }
+              }}
             >
               <option value="toutes">Toutes</option>
               {(
@@ -204,6 +272,15 @@ function App() {
             </select>
           </label>
         </div>
+        <label className="search-field">
+          <span>Rechercher une note</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Saisissez un mot-clé..."
+          />
+        </label>
         {visibleNotes.length > 0 ? (
           <ul className="notes-list">
             {visibleNotes.map((note) => (
@@ -219,7 +296,9 @@ function App() {
         ) : (
           !loading && (
             <p className="empty-state">
-              {showAll
+              {search.trim()
+                ? "Aucune note ne correspond à votre recherche."
+                : showAll
                 ? categoryFilter === "toutes"
                   ? "Aucune note pour le moment. Ajoutez votre première idée ci-dessus."
                   : "Aucune note dans cette catégorie."
