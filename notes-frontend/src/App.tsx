@@ -15,6 +15,7 @@ import {
 } from "./store/notesSlice";
 import type { AppDispatch, RootState } from "./store/store";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useDebounce } from "./hooks/useDebounce";
 
 type Theme = "light" | "dark";
 type NotesFilter = {
@@ -66,6 +67,7 @@ function App() {
     "",
     isSearch,
   );
+  const debouncedSearch = useDebounce(search, 300);
   const [newNote, setNewNote] = useState("");
   const [newCompleted, setNewCompleted] = useState(false);
   const [newCategory, setNewCategory] = useState<NoteCategory>("PERSONAL");
@@ -145,7 +147,7 @@ function App() {
     (note) =>
       (showAll || note.important) &&
       (categoryFilter === "toutes" || note.category === categoryFilter) &&
-      note.content.toLowerCase().includes(search.trim().toLowerCase()),
+      note.content.toLowerCase().includes(debouncedSearch.trim().toLowerCase()),
   );
 
   return (
