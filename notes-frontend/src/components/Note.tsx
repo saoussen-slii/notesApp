@@ -1,4 +1,4 @@
-import type { NoteData } from "../services/notesService";
+import { categoryLabels, type NoteData } from "../services/notesService";
 
 type NoteProps = {
   note: NoteData;
@@ -24,7 +24,9 @@ function Note({
         </span>
         {note.important && <span className="note-badge">Importante</span>}
         {note.category && (
-          <span className="note-category">Catégorie: {note.category}</span>
+          <span className="note-category">
+            Catégorie: {categoryLabels[note.category]}
+          </span>
         )}
       </div>
       <div className="note-actions">

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import "./App.css";
 import Note from "./components/Note";
 import notesService, {
+  categoryLabels,
   type NoteCategory,
   type NoteData,
 } from "./services/notesService";
@@ -22,7 +23,7 @@ function App() {
   );
   const [newNote, setNewNote] = useState("");
   const [newCompleted, setNewCompleted] = useState(false);
-  const [newCategory, setNewCategory] = useState<NoteCategory>("personnel");
+  const [newCategory, setNewCategory] = useState<NoteCategory>("PERSONAL");
   const [categoryFilter, setCategoryFilter] = useState<NoteCategory | "toutes">(
     "toutes",
   );
@@ -51,7 +52,7 @@ function App() {
       dispatch(noteAdded(createdNote));
       setNewNote("");
       setNewCompleted(false);
-      setNewCategory("personnel");
+      setNewCategory("PERSONAL");
       setError("");
     } catch {
       setError("Impossible d’ajouter la note.");
@@ -135,10 +136,13 @@ function App() {
             setNewCategory(event.target.value as NoteCategory)
           }
         >
-          <option value="travail">Travail</option>
-          <option value="ecole">École</option>
-          <option value="personnel">Personnel</option>
-          <option value="urgent">Urgent</option>
+          {(
+            Object.entries(categoryLabels) as [NoteCategory, string][]
+          ).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
         <label className="check-field" htmlFor="note-completed">
           <input
@@ -190,10 +194,13 @@ function App() {
               }
             >
               <option value="toutes">Toutes</option>
-              <option value="travail">Travail</option>
-              <option value="ecole">École</option>
-              <option value="personnel">Personnel</option>
-              <option value="urgent">Urgent</option>
+              {(
+                Object.entries(categoryLabels) as [NoteCategory, string][]
+              ).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
