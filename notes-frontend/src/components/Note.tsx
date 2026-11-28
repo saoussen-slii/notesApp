@@ -1,19 +1,44 @@
-import type { NoteData } from "../services/notesService";
+import { categoryLabels, type NoteData } from "../services/notesService";
 
 type NoteProps = {
   note: NoteData;
   onToggleImportance: (note: NoteData) => void;
+  onToggleCompleted: (note: NoteData) => void;
   onDelete: (id: NoteData["id"]) => void;
 };
 
-function Note({ note, onToggleImportance, onDelete }: NoteProps) {
+function Note({
+  note,
+  onToggleImportance,
+  onToggleCompleted,
+  onDelete,
+}: NoteProps) {
   return (
-    <li className="note-card">
+    <li
+      className="note-card"
+      style={{ borderColor: note.important ? "red" : "black" }}
+    >
       <div className="note-content">
-        {note.content}
+        <span className={note.completed ? "note-text is-completed" : "note-text"}>
+          {note.content}
+        </span>
         {note.important && <span className="note-badge">Importante</span>}
+        {note.category && (
+          <span className="note-category">
+            Catégorie: {categoryLabels[note.category]}
+          </span>
+        )}
       </div>
       <div className="note-actions">
+        <label className="completed-toggle">
+          <input
+            type="checkbox"
+            checked={note.completed}
+            onChange={() => onToggleCompleted(note)}
+            aria-label={`Terminée : ${note.content}`}
+          />
+          Terminée
+        </label>
         <button
           type="button"
           onClick={() => onToggleImportance(note)}
@@ -26,6 +51,7 @@ function Note({ note, onToggleImportance, onDelete }: NoteProps) {
           type="button"
           onClick={() => onDelete(note.id)}
           aria-label={`Supprimer la note : ${note.content}`}
+          disabled={note.important}
         >
           Supprimer
         </button>

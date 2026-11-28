@@ -57,7 +57,8 @@
   font-weight: 650;
 }
 
-.note-form input {
+.note-form input:not([type="checkbox"]),
+.note-form select {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -70,14 +71,44 @@
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.note-form select {
+  cursor: pointer;
+  grid-column: 1 / -1;
+}
+
+.note-form .check-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.check-field input,
+.completed-toggle input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.note-form input:not([type="checkbox"]):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
 .note-form input::placeholder {
   color: var(--muted);
 }
 
-.note-form input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-bg);
+.note-character-count {
+  grid-column: 1 / -1;
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
 }
 
 button {
@@ -113,13 +144,20 @@ button:active {
   transform: translateY(0);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
 .button-primary {
   color: #fff;
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.button-primary:hover {
+.button-primary:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
@@ -150,6 +188,24 @@ button:active {
   color: var(--accent);
   background: var(--accent-bg);
   border-color: transparent;
+}
+
+.category-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.category-filter select {
+  min-height: 42px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  font: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 .notes-list {
@@ -186,6 +242,11 @@ button:active {
   white-space: pre-wrap;
 }
 
+.note-text.is-completed {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
 .note-badge {
   display: inline-flex;
   align-items: center;
@@ -200,12 +261,40 @@ button:active {
   border-radius: 999px;
 }
 
+.note-category {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 8px;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.4;
+  vertical-align: middle;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
 .note-actions {
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.completed-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  color: var(--text-h);
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
 }
 
 .button-delete {

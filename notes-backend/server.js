@@ -1,6 +1,6 @@
 import express from "express";
-import fs from "fs";
 import cors from "cors";
+import mysql from "mysql2/promise";
 
 const app = express();
 const port = 3001;
@@ -8,77 +8,136 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-const dbPath = "./db.json";
+const pool = mysql.createPool({
+  host: "localhost",
+  port: 3306,
+  user: "root",
+  password: "",
+  database: "notes_app",
+});
 
-async function readNotes() {
-  const data = await fs.promises.readFile(dbPath, "utf-8");
-  return JSON.parse(data).notes;
+const noteCategories = ["PERSONAL", "SCHOOL", "WORK"];
+
+function readUserId(value) {
+  const userId = Number(value);
+  if (!Number.isInteger(userId) || userId <= 0) return null;
+  return userId;
 }
 
-async function writeNotes(notes) {
-  await fs.promises.writeFile(dbPath, JSON.stringify({ notes }, null, 2));
+function readNoteId(value) {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) return null;
+  return id;
+}
+
+function readNoteBody(body) {
+  const { content, important = false, completed = false, category } = body ?? {};
+  if (
+    typeof content !== "string" ||
+    typeof important !== "boolean" ||
+    typeof completed !== "boolean" ||
+    !noteCategories.includes(category)
+  ) {
+    return null;
+  }
+  return { content, important, completed, category };
+}
+
+function toNote(row) {
+  return {
+    id: row.id,
+    content: row.content,
+    important: Boolean(row.important),
+    completed: Boolean(row.completed),
+    category: row.category,
+  };
 }
 
 app.get("/notes", async (req, res) => {
-  console.log("Requête GET /notes reçue");
-  const notesPromise = readNotes();
-  console.log("Promise avant await :", notesPromise);
+  const userId = readUserId(req.query.userId);
+  if (userId === null) {
+    return res.status(400).json({ error: "userId is invalid" });
+  }
 
-  const notes = await notesPromise;
-  console.log("Notes après await :", notes);
-  res.json(notes);
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, content, important, completed, category FROM notes WHERE user_id = ?",
+      [userId], 
+    );
+    res.json(rows.map(toNote));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "database error" });
+  }
 });
 
 app.post("/notes", async (req, res) => {
-  const { content, important = false } = req.body ?? {};
-  if (typeof content !== "string" || typeof important !== "boolean") {
+  const userId = readUserId(req.body?.userId);
+  const note = readNoteBody(req.body);
+  if (userId === null || note === null) {
     return res.status(400).json({
-      error: "content must be a string and important must be a boolean",
+      error: "content, important, completed, category, or userId is invalid",
     });
   }
 
-  const notes = await readNotes();
-  const newNote = {
-    id: Date.now(),
-    content,
-    important,
-  };
-
-  notes.push(newNote);
-  await writeNotes(notes);
-  res.status(201).json(newNote);
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO notes (content, important, completed, category, user_id) VALUES (?, ?, ?, ?, ?)",
+      [note.content, note.important, note.completed, note.category, userId],
+    );
+    console.log(result);
+    res.status(201).json({ id: result.insertId, ...note });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "database error" });
+  }
 });
 
 app.put("/notes/:id", async (req, res) => {
-  const { content, important } = req.body ?? {};
-  if (typeof content !== "string" || typeof important !== "boolean") {
+  const id = readNoteId(req.params.id);
+  const userId = readUserId(req.body?.userId);
+  const note = readNoteBody(req.body);
+  if (id === null || userId === null || note === null) {
     return res.status(400).json({
-      error: "content must be a string and important must be a boolean",
+      error: "content, important, completed, category, or userId is invalid",
     });
   }
 
-  const notes = await readNotes();
-  const index = notes.findIndex((note) => String(note.id) === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Note not found" });
+  try {
+    const [result] = await pool.query(
+      "UPDATE notes SET content = ?, important = ?, completed = ?, category = ? WHERE id = ? AND user_id = ?",
+      [note.content, note.important, note.completed, note.category, id, userId],
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+    res.json({ id, ...note });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "database error" });
   }
-
-  const updatedNote = { ...notes[index], content, important };
-  notes[index] = updatedNote;
-  await writeNotes(notes);
-  res.json(updatedNote);
 });
 
 app.delete("/notes/:id", async (req, res) => {
-  const notes = await readNotes();
-  const index = notes.findIndex((note) => String(note.id) === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Note not found" });
+  const id = readNoteId(req.params.id);
+  const userId = readUserId(req.query.userId);
+  if (id === null || userId === null) {
+    return res.status(400).json({ error: "userId is invalid" });
   }
 
-  notes.splice(index, 1);
-  await writeNotes(notes);
-  res.status(204).end();
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM notes WHERE id = ? AND user_id = ?",
+      [id, userId],
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+    res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "database error" });
+  }
 });
 
 app.listen(port, () => {
